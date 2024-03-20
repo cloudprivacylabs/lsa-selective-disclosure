@@ -2,31 +2,38 @@
 
 Selective disclosure allows a party to share a limited set of
 information with other parties. In personal data exchange scenarios,
-selective disclosure allows an individual to share only the necessary
-information with others. Layered schema architecture enables selective
-disclosure by annotating schemas with privacy tags. These privacy tags
-classify data elements with different privacy levels that the data
-owner can enable or disable based on the data exchange context.
+selective disclosure is a privacy mechanism that allows an individual
+to share only the necessary information with others. Layered schema
+architecture enables selective disclosure by annotating schemas with
+privacy tags. These privacy tags classify data elements with different
+privacy levels that the data owner can enable or disable based on the
+data exchange context.
 
 The following figure illustrates selective disclosure of a JSON
 document to different parties. For each different party or use case,
 an overlay is defined (or auto-generated) that marks certain fields as
 "sensitive". This overlay is combined with a schema to form a "schema
-variant", which is a schema tuned for a specific use case. When the
-JSON document is ingested using this schema variant, resulting data
-contains the "sensitive" tags for the selected fields. The pipeline
-removes all fields marked as "sensitive", and returns a JSON document
-to the recipient party. This real-time filtering allows decoupling the
-use-case specific selective disclosure logic from the backend
-(datbase, or wallet.)
+variant", which is a schema adjusted and annotated for a specific use
+case. 
+
+Ingesting the JSON document with this schema variant results in a
+labeled property graph representation of the input with annotations
+containins the "sensitive" tags for the selected fields. The semantic
+pipeline ingests the JSON document with the given schema variant,
+removes all fields marked as "sensitive", and translates the labeled
+property graph back into JSON document which is shared with the
+recipient. This real-time filtering allows decoupling the use-case
+specific selective disclosure logic from the backend (datbase, or
+wallet.)
 
 ![Selective Disclosure](selective-disclosure.png)
 
 
-To illustrate this concept, let's consider a sample user profile data
-structure containing some demographic information, represented as a
-JSON schema [profile.schema.json](profile.schema.json). This schema
-contains person's name, address, and phone information. 
+To demonstrate this operation using the LSA tooling, let's consider a
+sample user profile data structure containing some demographic
+information, represented as a JSON schema
+[profile.schema.json](profile.schema.json). This schema contains
+person's name, address, and phone information.
 
 The following is a sample JSON document (given in
 [profile.json](profile.json)):
