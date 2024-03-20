@@ -1,0 +1,17 @@
+{
+    "firstName": "john",
+    "lastName": "doe",
+    "address": {
+        "street": "123 Main St.",
+        "city": "Anycity",
+        "state": "CO",
+        "postalCode": "80000",
+        "country": "US"
+    },
+    "phone": [
+        {
+            "type": "cell",
+            "number": "123-123 1234"
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+jsonSchemas:
+  - name: profile.schema.json
+    id: http://example.org/ProfileSchema
+variants:
+  http://example.org/Profile:
+    jsonSchema:
+      ref: http://example.org/ProfileSchema#/definitions/Profile
+      layerId: http://example.org/Profile
+ 
+  

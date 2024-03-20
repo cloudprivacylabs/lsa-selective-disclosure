@@ -1,0 +1,7 @@
+- operation: ingest/json
+  params:
+    bundle:
+      - profile.bundle.yaml
+    type: http://example.org/Profile
+
+- operation: export/json

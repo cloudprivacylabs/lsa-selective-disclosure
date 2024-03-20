@@ -1,0 +1,32 @@
+{
+    "definitions": {
+        "Profile": {
+            "properties": {
+                "lastName": {
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        },
+        "Address": {
+            "properties": {
+                "street": {
+                    "type": "string",
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        },
+        "Phone": {
+            "properties": {
+                "number": {
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        }
+    }
+}
