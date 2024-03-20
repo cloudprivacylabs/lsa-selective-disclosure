@@ -23,8 +23,8 @@ pipeline ingests the JSON document with the given schema variant,
 removes all fields marked as "sensitive", and translates the labeled
 property graph back into JSON document which is shared with the
 recipient. This real-time filtering allows decoupling the use-case
-specific selective disclosure logic from the backend (datbase, or
-wallet.)
+specific selective disclosure logic from the backend (a database, or
+a wallet.)
 
 ![Selective Disclosure](selective-disclosure.png)
 
@@ -34,6 +34,52 @@ sample user profile data structure containing some demographic
 information, represented as a JSON schema
 [profile.schema.json](profile.schema.json). This schema contains
 person's name, address, and phone information.
+
+```
+{
+    "definitions": {
+        "Profile": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "$ref": "#/definitions/Address"
+                },
+                "phone": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Phone"
+                    }
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                ...
+            }
+        },
+        "Address": {
+            "type": "object",
+            "properties": {
+                "street": {
+                    "type": "string"
+                },
+                ...
+            }
+        },
+        "Phone": {
+            "type": "object",
+            "properties": {
+                "number": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
+
+```
 
 The following is a sample JSON document (given in
 [profile.json](profile.json)):
@@ -104,12 +150,18 @@ Next step is to combine the schema with this overlay to create a
 schema variant. This is done with a schema bundle as below:
 
 ```
+# Combine the JSON schema and the overlay
+# The resulting schema has id http://example.org/ProfileSchema
 jsonSchemas:
   - name: profile.schema.json
     id: http://example.org/ProfileSchema
     overlays:
       - profile-sensitive.ovl.json
+      
+# Declare the data type variants based on the schema
 variants:
+  # The Profile data type is defined at #/definitions/Profile
+  # of the combined JSON schema
   http://example.org/Profile:
     jsonSchema:
       ref: http://example.org/ProfileSchema#/definitions/Profile
@@ -132,17 +184,21 @@ graph, removing all nodes that are marked with `privacyLevel:
 sensitive`. The final step translates the graph to JSON.
 
 ```
+# Ingest a Profile object with the schema using the sensitive overlay
+# The output of this stage is a graph
 - operation: ingest/json
   params:
     bundle:
       - profile-sensitive.bundle.yaml
     type: http://example.org/Profile
 
+# Remove all graph nodes that are marked sensitive
 - operation: oc
   params:
     expr:
       - match (k {`privacyLevel`:"sensitive"}) detach delete k
     
+# Convert the graph back to JSON
 - operation: export/json
 ```
 
@@ -175,3 +231,101 @@ The output is:
 
 As you can see, the output does not contain those fields that are
 markes as sensitive.
+
+Now we can create a second overlay to add more sensitive fields. The 
+[profile-moresensitive.ovl.json](profile-moresensitive.ovl.json) overlay declares `firstName`, `middlename` and `city` fields as sensitive.
+
+```
+{
+    "definitions": {
+        "Profile": {
+            "properties": {
+                "firstName": {
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                },
+                "middleName": {
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        },
+        "Address": {
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+Then a new schema bundle combines both sensitive data overlays ([profile-moresensitive.bundle.yaml](profile-moresensitive.bundle.yaml)):
+
+```
+jsonSchemas:
+  - name: profile.schema.json
+    id: http://example.org/ProfileSchema
+    overlays:
+      - profile-sensitive.ovl.json
+      - profile-moresensitive.ovl.json
+variants:
+  http://example.org/Profile:
+    jsonSchema:
+      ref: http://example.org/ProfileSchema#/definitions/Profile
+      layerId: http://example.org/Profile
+```
+
+With a new pipeline using this bundle:
+
+```
+- operation: ingest/json
+  params:
+    bundle:
+      - profile-moresensitive.bundle.yaml
+    type: http://example.org/Profile
+
+- operation: oc
+  params:
+    expr:
+      - match (k {`privacyLevel`:"sensitive"}) detach delete k
+    
+- operation: export/json
+
+```
+
+To get the output, run:
+
+```
+layers pipeline --file moresensitive.pipeline.yaml  profile.json 
+```
+
+Which gives:
+
+```
+{
+  "address": {
+    "state": "CO",
+    "postalCode": "80000",
+    "country": "US"
+  },
+  "phone": [
+    {
+      "type": "cell"
+    }
+  ]
+}
+```
+
+So we created two overlays, two schema bundles, and two pipelines that
+are applicable to two separate data exchange scenarios.
+
+This example only illustrates the basics of selective disclosure using
+the layered schema architecture, which is the foundation for our
+real-time data filtering engine.

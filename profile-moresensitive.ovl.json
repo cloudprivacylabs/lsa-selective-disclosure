@@ -1,0 +1,28 @@
+{
+    "definitions": {
+        "Profile": {
+            "properties": {
+                "firstName": {
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                },
+                "middleName": {
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        },
+        "Address": {
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "x-ls": {
+                        "privacyLevel": "sensitive"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,12 @@
+- operation: ingest/json
+  params:
+    bundle:
+      - profile-moresensitive.bundle.yaml
+    type: http://example.org/Profile
+
+- operation: oc
+  params:
+    expr:
+      - match (k {`privacyLevel`:"sensitive"}) detach delete k
+    
+- operation: export/json
